@@ -1,0 +1,12 @@
+﻿# ASP.NET Core
+bin/
+obj/
+*.csproj.user
+appsettings.Development.json
+
+# Firebase service account
+Config/*.json
+
+# IDE-specific
+.vscode/
+.vs/

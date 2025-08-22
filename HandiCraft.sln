@@ -1,0 +1,55 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35312.102
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HandiCraft.API", "HandiCraft.API\HandiCraft.API.csproj", "{AC39B749-3EB9-4E3D-9ED4-4A495E3B1CDB}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HandiCraft.Domain", "HandiCraft.Domain\HandiCraft.Domain.csproj", "{97A42221-FB13-4BFC-AA96-7A8BDA76CE99}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HandiCraft.Infrastructure", "HandiCraft.Infrastructure\HandiCraft.Infrastructure.csproj", "{BDB0EF59-AE9A-4380-B3CE-4D11DFBC798D}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HandiCraft.Presentation", "HandiCraft.Presentation\HandiCraft.Presentation.csproj", "{F82779DF-C5CD-4862-A962-C143E417390B}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HandiCraft.Presistance", "HandiCraft.Presistance\HandiCraft.Presistance.csproj", "{2EE56A7D-C882-4F5C-AE12-B757505E0076}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HandiCraft.Application", "HandiCraft.Application\HandiCraft.Application.csproj", "{9DF1C982-AE94-4537-8418-61212762DB51}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{AC39B749-3EB9-4E3D-9ED4-4A495E3B1CDB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AC39B749-3EB9-4E3D-9ED4-4A495E3B1CDB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AC39B749-3EB9-4E3D-9ED4-4A495E3B1CDB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AC39B749-3EB9-4E3D-9ED4-4A495E3B1CDB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97A42221-FB13-4BFC-AA96-7A8BDA76CE99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97A42221-FB13-4BFC-AA96-7A8BDA76CE99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97A42221-FB13-4BFC-AA96-7A8BDA76CE99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97A42221-FB13-4BFC-AA96-7A8BDA76CE99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BDB0EF59-AE9A-4380-B3CE-4D11DFBC798D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDB0EF59-AE9A-4380-B3CE-4D11DFBC798D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDB0EF59-AE9A-4380-B3CE-4D11DFBC798D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDB0EF59-AE9A-4380-B3CE-4D11DFBC798D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F82779DF-C5CD-4862-A962-C143E417390B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F82779DF-C5CD-4862-A962-C143E417390B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F82779DF-C5CD-4862-A962-C143E417390B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F82779DF-C5CD-4862-A962-C143E417390B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2EE56A7D-C882-4F5C-AE12-B757505E0076}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2EE56A7D-C882-4F5C-AE12-B757505E0076}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2EE56A7D-C882-4F5C-AE12-B757505E0076}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2EE56A7D-C882-4F5C-AE12-B757505E0076}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9DF1C982-AE94-4537-8418-61212762DB51}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9DF1C982-AE94-4537-8418-61212762DB51}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9DF1C982-AE94-4537-8418-61212762DB51}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9DF1C982-AE94-4537-8418-61212762DB51}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5EBA2EB2-6683-4B0C-8F75-EBEA4D31BEDF}
+	EndGlobalSection
+EndGlobal

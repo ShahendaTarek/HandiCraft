@@ -1,0 +1,6 @@
+@HandiCraft.API_HostAddress = http://localhost:5143
+
+GET {{HandiCraft.API_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
