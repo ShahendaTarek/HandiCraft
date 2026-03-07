@@ -1,6 +1,8 @@
-﻿using HandiCraft.Domain.UserConnections;
+﻿using HandiCraft.Application.Interfaces;
+using HandiCraft.Domain.UserConnections;
+using HandiCraft.Infrastructure.Services.UserConnections;
 using HandiCraft.Presentation;
-using HandiCraft.Presistance.Identity;
+using HandiCraft.Presistance.context;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,13 +11,14 @@ using System.Security.Claims;
 
 namespace HandiCraft.API.Controllers
 {
+    [Authorize]
     public class UserConnectionController : APIControllerBase
     {
 
-        private readonly HandiCraftDbContext _context;
-        public UserConnectionController(HandiCraftDbContext context)
+        private readonly IUserConnectionsServices _userConnectionService;
+        public UserConnectionController(IUserConnectionsServices userConnectionService)
         {
-            _context = context;
+            _userConnectionService = userConnectionService;
         }
         [Authorize]
         [HttpPost("follow/{userId}")]
@@ -28,36 +31,43 @@ namespace HandiCraft.API.Controllers
             if (currentUserId == userId)
                 return BadRequest(new Response(400,"You cannot follow yourself."));
 
-            var existingFollow = await _context.UserFollows
-                .FirstOrDefaultAsync(x => x.FollowerId == currentUserId && x.FollowedId == userId);
-
-            if (existingFollow != null)
-                return BadRequest(new Response(400,"You already follow this user."));
-
-            var follow = new UserFollow
+            try
             {
-                FollowerId = currentUserId,
-                FollowedId = userId
-            };
+                var result = await _userConnectionService.FollowUserAsync(currentUserId, userId);
+                return Ok(new { message = "Followed successfully." });
 
-            _context.UserFollows.Add(follow);
-            await _context.SaveChangesAsync();
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
 
-            return Ok("Followed user successfully.");
+
+            
         }
-        [Authorize]
-        [HttpGet("followers")]
-        public async Task<IActionResult> GetFollowers()
+        
+        [HttpGet("followers/{userId}")]
+
+        public async Task<IActionResult> GetFollowers(string userId)
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var followers = await _context.UserFollows
-                .Where(x => x.FollowedId == userId)
-                .Select(x => x.Follower.DisplayName)
-                .ToListAsync();
+            var followers = await _userConnectionService.GetFollowersAsync(userId);
+
+            if (followers == null || !followers.Any())
+                return NotFound(new Response(404,"No followers found."));
 
             return Ok(followers);
         }
-        [Authorize]
+        [HttpGet("following/{userId}")]
+        public async Task<IActionResult> GetFollowing(string userId)
+        {
+            var following = await _userConnectionService.GetFollowingAsync(userId);
+
+            if (following == null || !following.Any())
+                return NotFound("This user is not following anyone yet.");
+
+            return Ok(following);
+        }
+
         [HttpDelete("unfollow/{userId}")]
         public async Task<IActionResult> UnfollowUser(string userId)
         {
@@ -66,49 +76,34 @@ namespace HandiCraft.API.Controllers
             if (currentUserId == null)
                 return Unauthorized("User not authenticated");
 
-            var follow = await _context.UserFollows
-                .FirstOrDefaultAsync(f => f.FollowerId == currentUserId && f.FollowedId == userId);
+            var follow = await _userConnectionService.UnfollowUserAsync(currentUserId, userId);
 
             if (follow == null)
                 return NotFound(new Response(404,"You are not following this user"));
-
-            _context.UserFollows.Remove(follow);
-            await _context.SaveChangesAsync();
 
             return Ok("Unfollowed successfully");
         }
 
 
-        [Authorize]
+      
         [HttpPost("block/{userId}")]
         public async Task<IActionResult> BlockUser(string userId)
         {
             var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                if (currentUserId == null)
+                return Unauthorized("User not authenticated");
 
-            if (currentUserId == userId)
-                return BadRequest(new Response(400,"You cannot block yourself."));
 
-            var exists = await _context.UserBlocks
-                .AnyAsync(x => x.BlockerId == currentUserId && x.BlockedId == userId);
-
-            if (exists)
-                return BadRequest("You already blocked this user.");
-
-            _context.UserBlocks.Add(new UserBlock
+            try
             {
-                BlockerId = currentUserId,
-                BlockedId = userId
-            });
-
-            var follow = await _context.UserFollows
-                .FirstOrDefaultAsync(x => x.FollowerId == userId && x.FollowedId == currentUserId);
-
-            if (follow != null)
-                _context.UserFollows.Remove(follow);
-
-            await _context.SaveChangesAsync();
-
-            return Ok("User blocked.");
+                await _userConnectionService.BlockUserAsync(currentUserId, userId);
+                return Ok(new { message = "User blocked successfully." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { error = ex.Message });
+            }
         }
+        
     }
 }

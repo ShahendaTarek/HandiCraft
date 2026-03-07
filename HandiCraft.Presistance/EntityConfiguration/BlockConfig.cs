@@ -17,7 +17,7 @@ namespace HandiCraft.Presistance.EntityConfiguration
 
 
             builder.HasOne(x => x.Blocker)
-                   .WithMany()
+                   .WithMany(u => u.BlockedUsers)
                    .HasForeignKey(x => x.BlockerId)
                    .OnDelete(DeleteBehavior.Restrict);
 

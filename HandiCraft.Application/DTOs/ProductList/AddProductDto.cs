@@ -15,6 +15,7 @@ namespace HandiCraft.Application.DTOs.ProductList
         public string Material { get; set; }
         public string Color { get; set; }
         public int ShippingTimeInDays { get; set; }
+        public decimal Price { get; set; }
         
         public string CategoryName { get; set; }
         public IFormFile ProductImageUrl { get; set; }

@@ -86,7 +86,7 @@ namespace HandiCraft.API.Controllers
             return Ok(result);
         }
         [Authorize]
-        [HttpGet("user")]
+        [HttpGet("posts")]
         public async Task<IActionResult> GetPostsByUser()
         {
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;

@@ -4,7 +4,7 @@ using HandiCraft.Application.Specificatoins;
 using HandiCraft.Domain.ProductList;
 using HandiCraft.Infrastructure.Services.ProductList;
 using HandiCraft.Presentation;
-using HandiCraft.Presistance.Identity;
+using HandiCraft.Presistance.context;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -55,6 +55,38 @@ namespace HandiCraft.API.Controllers
                 return NotFound(new Response(404));
 
             return Ok(result);
+        }
+
+        [Authorize]
+        [HttpPost("{productId}/react")]
+        public async Task<IActionResult> AddReaction(Guid productId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+                return Unauthorized(new Response(401,"User not logged in"));
+
+            var success = await _productListService.AddProductReactionAsync(userId, productId);
+
+            if (!success)
+                return BadRequest(new Response(400,"Could not add reaction (maybe already reacted or product not found)"));
+
+            return Ok("Reaction added successfully");
+        }
+
+        [Authorize]
+        [HttpDelete("{productId}/react")]
+        public async Task<IActionResult> RemoveReaction(Guid productId)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null)
+                return Unauthorized(new Response(401,"User not logged in"));
+
+            var success = await _productListService.RemoveProductReactionAsync(userId, productId);
+
+            if (!success)
+                return NotFound(new Response(404,"Reaction not found for this product"));
+
+            return Ok("Reaction removed successfully");
         }
         [HttpGet("Products")]
         public async Task<IActionResult> GetAllProducts([FromQuery] ProductSpecParams productParams)

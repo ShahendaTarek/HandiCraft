@@ -1,11 +1,13 @@
 ﻿using HandiCraft.Application.Interfaces.Auth;
 using HandiCraft.Domain.Identity;
-using HandiCraft.Presistance.Identity;
+using HandiCraft.Presistance.context;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using System.Security.Claims;
 using System.Text;
 
 
@@ -42,6 +44,25 @@ namespace HandiCraft.Infrastructure.Services.Authentication.IdentityServices
                             Encoding.UTF8.GetBytes(Configuration["JWT:Key"]!)),
                         ClockSkew = TimeSpan.Zero 
                     };
+                    options.Events = new JwtBearerEvents
+                    {
+                        OnTokenValidated = async context =>
+                        {
+                            var userManager = context.HttpContext.RequestServices
+                                .GetRequiredService<UserManager<ApplicationUser>>();
+
+                            var userId = context.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
+                            var securityStampClaim = context.Principal.FindFirstValue("SecurityStamp");
+
+                            var user = await userManager.FindByIdAsync(userId);
+
+                            if (user == null || user.SecurityStamp != securityStampClaim)
+                            {
+                                context.Fail("Token is no longer valid.");
+                            }
+                        }
+                    };
+
                 });
 
             //Services.AddAuthorization();

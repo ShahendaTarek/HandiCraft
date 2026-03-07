@@ -33,7 +33,7 @@ namespace HandiCraft.Application.DTOs.User
         public string Password { get; set; }
         [Required]
         public string ConfirmPassword { get; set; }
-        
+        [Required]
         public UserType UserType { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }

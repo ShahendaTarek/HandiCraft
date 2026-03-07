@@ -16,12 +16,12 @@ namespace HandiCraft.Presistance.EntityConfiguration
             builder.HasKey(x => new { x.FollowerId, x.FollowedId });
 
             builder.HasOne(x => x.Follower)
-                   .WithMany()
+                   .WithMany(u => u.Followings)
                    .HasForeignKey(x => x.FollowerId)
                    .OnDelete(DeleteBehavior.Restrict);
 
             builder.HasOne(x => x.Followed)
-                   .WithMany()
+                   .WithMany(u => u.Followers)
                    .HasForeignKey(x => x.FollowedId)
                    .OnDelete(DeleteBehavior.Restrict);
         }

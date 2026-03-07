@@ -14,6 +14,7 @@ namespace HandiCraft.Application.Extentions
     {
         public static IServiceCollection AddApplicationServices(this IServiceCollection Services)
         {
+
            
             Services.Configure<ApiBehaviorOptions>(Options =>
             {

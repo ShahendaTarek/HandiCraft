@@ -33,17 +33,17 @@ namespace HandiCraft.Presentation.MiddleWares
                 context.Response.ContentType = "application/json";
                 context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;
 
-
                 var Response = _env.IsDevelopment()
-                     ? new ExceptionResponse((int)HttpStatusCode.InternalServerError, ex.Message, ex.StackTrace?.ToString())
+                     ? new Response(
+                         (int)HttpStatusCode.InternalServerError,
+                         ex.Message,
+                         ex.StackTrace?.ToString(),
+                         ex.InnerException?.Message 
+                     )
                      : new ExceptionResponse((int)HttpStatusCode.InternalServerError, "An unexpected error occurred.");
 
-
                 var JsonResponse = JsonSerializer.Serialize(Response);
-                 await context.Response.WriteAsync(JsonResponse);
-
-
-
+                await context.Response.WriteAsync(JsonResponse);
             }
         }
     }

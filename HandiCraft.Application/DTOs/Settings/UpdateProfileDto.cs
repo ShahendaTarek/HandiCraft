@@ -5,11 +5,11 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HandiCraft.Application.DTOs.User
+namespace HandiCraft.Application.DTOs.Settings
 {
     public class UpdateProfileDto
     {
-        public string? UserName { get; set; }
+        public string? DisplayName { get; set; }
         public string? FirstName { get; set; }
         public string? LastName { get; set; }   
         public string? PhoneNumber { get; set; }

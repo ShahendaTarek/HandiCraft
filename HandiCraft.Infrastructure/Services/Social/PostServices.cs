@@ -3,7 +3,7 @@ using HandiCraft.Application.DTOs.Social;
 using HandiCraft.Application.Interfaces;
 using HandiCraft.Domain.Identity;
 using HandiCraft.Domain.Posts;
-using HandiCraft.Presistance.Identity;
+using HandiCraft.Presistance.context;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
@@ -23,13 +23,15 @@ namespace HandiCraft.Infrastructure.Services.Social
         private readonly HandiCraftDbContext _context;
         private readonly IWebHostEnvironment _env;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IFavoriteServices _favoriteServices;
 
-        public PostServices(HandiCraftDbContext context, IMapper mapper, IWebHostEnvironment env, UserManager<ApplicationUser> userManager)
+        public PostServices(HandiCraftDbContext context, IMapper mapper, IWebHostEnvironment env, UserManager<ApplicationUser> userManager, IFavoriteServices favoriteServices)
         {
             _context = context;
             _mapper = mapper;
             _env = env;
             _userManager = userManager;
+            _favoriteServices = favoriteServices;
         }
         public async Task<PostDto> CreatePostAsync(string userId, CreatePostDto dto)
         {
@@ -116,7 +118,7 @@ namespace HandiCraft.Infrastructure.Services.Social
             return _mapper.Map<CommentDto>(comment);
         }
 
-        public async Task<ReactDto> AddReactionAsync(string userId,AddReactDto dto)
+        public async Task<ReactDto> AddReactionAsync(string userId, AddReactDto dto)
         {
             var post = await _context.Posts
                .Include(p => p.Reactions)
@@ -127,13 +129,16 @@ namespace HandiCraft.Infrastructure.Services.Social
                 throw new Exception("Post not found.");
             }
 
-            
             var existingReaction = post.Reactions
                 .FirstOrDefault(r => r.UserId == userId);
 
             if (existingReaction != null)
             {
-                throw new InvalidOperationException("You already reacted to this post.");
+                _context.Reactions.Remove(existingReaction);
+                await _context.SaveChangesAsync();
+
+
+                return null; 
             }
 
             var reaction = new Reaction
@@ -146,10 +151,10 @@ namespace HandiCraft.Infrastructure.Services.Social
             _context.Reactions.Add(reaction);
             await _context.SaveChangesAsync();
 
-            var result = _mapper.Map<ReactDto>(reaction);
-            return result;
-        }
 
+            return _mapper.Map<ReactDto>(reaction);
+        }
+        
         public async Task<string> DeletePostAsync(string userId, Guid postId)
         {
             var post = await _context.Posts
@@ -246,8 +251,15 @@ namespace HandiCraft.Infrastructure.Services.Social
                 return "You are not allowed to delete this reaction";
             }
 
+            var postId = await _context.Reactions
+                   .Where(r => r.Id == reactionId)
+                   .Select(r => r.PostId)
+                   .FirstOrDefaultAsync();
+
             _context.Reactions.Remove(reaction);
             await _context.SaveChangesAsync();
+            
+
 
             return "Reaction deleted successfully";
         }

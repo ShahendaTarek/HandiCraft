@@ -12,6 +12,8 @@ namespace HandiCraft.Application.Interfaces
     public  interface IProductListServices
     {
         Task<ProductResponseDto>AddProductAsync(string UserId,AddProductDto product);
+        Task<bool> AddProductReactionAsync(string userId, Guid productId);
+        Task<bool> RemoveProductReactionAsync(string userId, Guid productId);
         Task<Pagination<ProductResponseDto>> GetAllProductsAsync(ProductSpecParams productParams);
         Task<ProductResponseDto> GetProductByIdAsync(Guid id);
         Task<ProductResponseDto> UpdateProductAsync(string userId,Guid id, UpdateProductDto dto);

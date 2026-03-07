@@ -1,36 +1,44 @@
 ﻿using AutoMapper;
 using HandiCraft.Application.DTOs.Services;
+using HandiCraft.Application.DTOs.Settings;
 using HandiCraft.Application.DTOs.User;
+using HandiCraft.Application.Interfaces;
 using HandiCraft.Application.Interfaces.Auth;
 using HandiCraft.Domain.Identity;
+using HandiCraft.Domain.UserAccount;
 using HandiCraft.Infrastructure.EmailServices;
+using HandiCraft.Infrastructure.Services.UserConnections;
+using HandiCraft.Presentation;
+using HandiCraft.Presistance.context;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
-using HandiCraft.Presentation;
+using System.Security.Cryptography;
 
 namespace HandiCraft.API.Controllers
 {
     public class AccountController : APIControllerBase
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IAuthServices _AuthServics;
         private readonly IWebHostEnvironment _env;
         private readonly IMapper _mapper;
         private readonly IEmailService _emailService;
+        private readonly HandiCraftDbContext _context;
+        private readonly IFavoriteServices _favoriteServices;
 
-        public AccountController(UserManager<ApplicationUser> userManager, IWebHostEnvironment env, SignInManager<ApplicationUser> signInManager, IAuthServices authServics, IMapper mapper, IEmailService emailService)
+        public AccountController(UserManager<ApplicationUser> userManager, IWebHostEnvironment env, IAuthServices authServics, IMapper mapper, IEmailService emailService, HandiCraftDbContext context, IFavoriteServices favoriteServices)
         {
             _userManager = userManager;
             _env = env;
-            _signInManager = signInManager;
             _AuthServics = authServics;
             _mapper = mapper;
             _emailService = emailService;
+            _context = context;
+            _favoriteServices = favoriteServices;
         }
         [HttpPost("Register")]
         public async Task<ActionResult<UserDto>> Register([FromForm] RegisterDto model)
@@ -81,7 +89,18 @@ namespace HandiCraft.API.Controllers
 
             if (!result.Succeeded)
                 return BadRequest(result.Errors);
+            var settings = new UserSettings
+            {
+                UserId = user.Id,
+                IsNotificationEnabled = true,
+                IsDarkMode = false,
+                PreferredLanguage = Language.English, 
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
 
+            await _context.Settings.AddAsync(settings);
+            await _context.SaveChangesAsync();
             var ReturnedObject = _mapper.Map<UserDto>(user);
             ReturnedObject.Token = await _AuthServics.CreateTokenAsync(user, _userManager);
 
@@ -93,19 +112,31 @@ namespace HandiCraft.API.Controllers
                 ReturnedObject
             });
         }
+        private string GenerateRefreshToken()
+        {
+            var randomBytes = new byte[32];
+            using var rng = RandomNumberGenerator.Create();
+            rng.GetBytes(randomBytes);
+            return Convert.ToBase64String(randomBytes);
+        }
         [HttpPost("Login")]
         public async Task<ActionResult>Login(LoginDto model)
         {
-            var User=await _userManager.FindByEmailAsync(model.Email);
-            if (User == null|| !await _userManager.CheckPasswordAsync(User, model.Password))
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null || !await _userManager.CheckPasswordAsync(user, model.Password))
+                return Unauthorized(new Response(401, "Invalid email or password"));
+
+            var token = await _AuthServics.CreateTokenAsync(user, _userManager);
+            var refreshToken = GenerateRefreshToken();
+
+            user.RefreshToken = refreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            await _userManager.UpdateAsync(user);
+
+            return Ok(new AuthResponseDto
             {
-                return Unauthorized(new Response(401,"Invalid email or password"));
-            }
-            var token = await _AuthServics.CreateTokenAsync(User, _userManager);
-            return Ok(new
-            {
-                message = "User login successfuly",
-                token = token
+                AccessToken = token,
+                RefreshToken = refreshToken
             });
         }
         [Authorize]
@@ -129,121 +160,79 @@ namespace HandiCraft.API.Controllers
             return Ok(ReturnedObject);
             
         }
-        [Authorize]
-        [HttpPut("updateProfile")]
-        public async Task<ActionResult>UpdateProfile([FromForm] UpdateProfileDto model)
-        {
-            Console.WriteLine("UpdateProfile here");
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            var user = await _userManager.FindByIdAsync(userId);
-
-            if (user == null)
-                return NotFound(new Response(400,"User not found"));
-            if (!string.IsNullOrEmpty(model.FirstName))
-                user.FirstName = model.FirstName;
-
-            if (!string.IsNullOrEmpty(model.LastName))
-                user.LastName = model.LastName;
-
-            if (!string.IsNullOrEmpty(model.Gender))
-                user.Gender = model.Gender;
-
-            if (!string.IsNullOrEmpty(model.Address))
-                user.Address = model.Address;
-
-            if (!string.IsNullOrEmpty(model.PhoneNumber))
-                user.PhoneNumber = model.PhoneNumber;
-
-            if (!string.IsNullOrEmpty(model.UserName))
-            {
-                var existingUser = await _userManager.FindByNameAsync(model.UserName);
-                if (existingUser != null && existingUser.Id != user.Id)
-                    return BadRequest(new Response(400,"Username already taken"));
-                user.UserName = model.UserName;
-            }
-            if (model.DateOfBirth != null)
-                user.DateOfBirth = model.DateOfBirth;
-
-            if (model.ProfilePicture != null)
-            {
-                var fileName = $"{Guid.NewGuid()}_{model.ProfilePicture.FileName}";
-                var folderPath = Path.Combine(_env.WebRootPath, "images/users");
-                Directory.CreateDirectory(folderPath);
-                var fullPath = Path.Combine(folderPath, fileName);
-                using var stream = new FileStream(fullPath, FileMode.Create);
-                await model.ProfilePicture.CopyToAsync(stream);
-
-                user.ProfilePicture = $"/images/users/{fileName}";
-            }
-
-            var result = await _userManager.UpdateAsync(user);
-
-            if (!result.Succeeded)
-                return BadRequest(result.Errors);
-            var ReturnedObject = _mapper.Map<UserDto>(user);
-            ReturnedObject.Token = await _AuthServics.CreateTokenAsync(user, _userManager);
-
-            return Ok(new
-            {
-                message = "Profile updated successfully",
-                data = ReturnedObject
-            });
-
-
-        }
-
-        [HttpPost("ForgotPassword")]
-        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto model)
-        {
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null)
-                return BadRequest(new Response(400, "Email not found."));
-
-            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-
-            var body = $@"
-                <p>Hello,</p>
-                <p>You requested to reset your password.</p>
-                <p>Your reset token is:</p>
-                <h3>{token}</h3>
-                <p>Use this token in the app to reset your password.</p>
-            ";
-
-            await _emailService.SendEmailAsync(
-                to: model.Email,
-                subject: "Reset Your Password",
-                body: body
-            );
-
-            return Ok(new
-            {
-                message = "Password reset token has been sent to your email."
-            });
-        }
-
-
-
-        [HttpPost("ResetPassword")]
-        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto model)
-        {
-            if (model.NewPassword != model.ConfirmPassword)
-                return BadRequest(new Response(400,"Passwords do not match."));
-
-            var user = await _userManager.FindByEmailAsync(model.Email);
-            if (user == null)
-                return BadRequest(new Response(400,"Invalid email."));
-
-            var result = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
-            if (!result.Succeeded)
-                return BadRequest(result.Errors);
-
-            return Ok(new { message = "Password has been reset successfully." });
-        }
+      
+      
         [HttpGet("AllUsers")]
         public async Task<List<UserDto>> GetAllUsersAsync()
         {
             var users = await _userManager.Users.ToListAsync();
             return _mapper.Map<List<UserDto>>(users);
+        }
+        [HttpDelete("remove-favorite/{id}")]
+        [Authorize]
+        public async Task<IActionResult> RemoveFromFavorite(int id)
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null) return Unauthorized();
+
+            var result = await _favoriteServices.RemoveFromFavoritesAsync(id, userId);
+            if (!result)
+                return BadRequest("Failed to remove item from favorites.");
+
+            return Ok("Removed from favorites successfully.");
+
+      
+        }
+        [HttpPost("RefreshToken")]
+        public async Task<ActionResult<AuthResponseDto>> RefreshToken([FromBody] RefreshRequestDto model)
+        {
+            var user = await _userManager.Users
+                .FirstOrDefaultAsync(u => u.RefreshToken == model.RefreshToken);
+
+            if (user == null || user.RefreshTokenExpiryTime <= DateTime.UtcNow)
+                return Unauthorized(new Response(401, "Invalid or expired refresh token"));
+
+            var newAccessToken = await _AuthServics.CreateTokenAsync(user, _userManager);
+            var newRefreshToken = GenerateRefreshToken();
+
+            user.RefreshToken = newRefreshToken;
+            user.RefreshTokenExpiryTime = DateTime.UtcNow.AddDays(7);
+            await _userManager.UpdateAsync(user);
+
+            return Ok(new AuthResponseDto
+            {
+                AccessToken = newAccessToken,
+                RefreshToken = newRefreshToken
+            });
+        }
+
+        [HttpGet("my-favorites")]
+        [Authorize]
+        public async Task<IActionResult> GetMyFavorites()
+        {
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (userId == null) return Unauthorized();
+
+            var result = await _favoriteServices.GetUserFavoritesAsync(userId);
+            return Ok(result);
+        }
+        [Authorize]
+        [HttpPost("Logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (userId == null) return Unauthorized();
+
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return NotFound("User not found.");
+
+            user.RefreshToken = null;
+            user.RefreshTokenExpiryTime = null;
+            await _userManager.UpdateAsync(user);
+
+            await _userManager.UpdateSecurityStampAsync(user);
+
+            return Ok(new { message = "Logged out successfully." });
         }
     }
 }

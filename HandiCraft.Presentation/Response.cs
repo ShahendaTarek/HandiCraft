@@ -10,10 +10,14 @@ namespace HandiCraft.Presentation
     {
         public int statusCode { get; set; }
         public string? Message { get; set; }
-        public Response(int statuscode, string? message = null)
+        public string StackTrace { get; set; }
+        public string InnerException { get; set; }
+        public Response(int statuscode, string? message = null, string stackTrace = null, string innerException = null)
         {
             statusCode = statuscode;
             Message = message ?? GetDefaultMessageForeStatusCode(statusCode);
+            StackTrace = stackTrace;
+            InnerException = innerException;
         }
 
         private string? GetDefaultMessageForeStatusCode(int statusCode)

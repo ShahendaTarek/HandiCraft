@@ -6,7 +6,7 @@ using HandiCraft.Application.Specificatoins;
 using HandiCraft.Domain.ProductList;
 using HandiCraft.Infrastructure.Specification;
 using HandiCraft.Presentation;
-using HandiCraft.Presistance.Identity;
+using HandiCraft.Presistance.context;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
@@ -16,11 +16,12 @@ namespace HandiCraft.Infrastructure.Services.ProductList
     {
         private readonly HandiCraftDbContext _context;
         private readonly IMapper _mapper;
-
-        public ProductListServices(HandiCraftDbContext context, IMapper mapper)
+        private readonly IFavoriteServices _favoriteServices;
+        public ProductListServices(HandiCraftDbContext context, IMapper mapper, IFavoriteServices favoriteServices)
         {
             _context = context;
             _mapper = mapper;
+            _favoriteServices = favoriteServices;
         }
         public async  Task<ProductResponseDto> AddProductAsync(string UserId, AddProductDto productdto)
         {
@@ -142,6 +143,47 @@ namespace HandiCraft.Infrastructure.Services.ProductList
             }
             _context.Products.Remove(product);
             await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> AddProductReactionAsync(string userId, Guid productId)
+        {
+            var product = await _context.Products
+                .FirstOrDefaultAsync(p => p.Id == productId);
+
+            if (product == null)
+                return false;
+
+            var existingReaction = await _context.ProductReactions
+                .FirstOrDefaultAsync(r => r.UserId == userId && r.ProductId == productId);
+
+            if (existingReaction != null)
+                return false;
+
+            var reaction = new ProductReaction
+            {
+                UserId = userId,
+                ProductId = productId
+            };
+
+            _context.ProductReactions.Add(reaction);
+            await _context.SaveChangesAsync();
+            await _favoriteServices.AddProductToFavoriteAsync(userId, productId);
+
+            return true;
+        }
+        public async Task<bool> RemoveProductReactionAsync(string userId, Guid productId)
+        {
+            var reaction = await _context.ProductReactions
+                .FirstOrDefaultAsync(r => r.UserId == userId && r.ProductId == productId);
+
+            if (reaction == null)
+                return false;
+
+            _context.ProductReactions.Remove(reaction);
+            await _context.SaveChangesAsync();
+            await _favoriteServices.RemoveProductFromFavoritesAsync(userId, productId);
+
             return true;
         }
     }

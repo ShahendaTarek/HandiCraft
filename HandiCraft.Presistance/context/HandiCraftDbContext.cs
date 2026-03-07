@@ -1,6 +1,9 @@
 ﻿using HandiCraft.Domain.Identity;
+using HandiCraft.Domain.Notifications;
+using HandiCraft.Domain.Orders;
 using HandiCraft.Domain.Posts;
 using HandiCraft.Domain.ProductList;
+using HandiCraft.Domain.UserAccount;
 using HandiCraft.Domain.UserConnections;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
@@ -14,7 +17,7 @@ using System.Reflection.Emit;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace HandiCraft.Presistance.Identity
+namespace HandiCraft.Presistance.context
 {
     public class HandiCraftDbContext : IdentityDbContext<ApplicationUser>
     {
@@ -48,5 +51,18 @@ namespace HandiCraft.Presistance.Identity
         public DbSet<Product> Products { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<ProductReaction> ProductReactions { get; set; }
+        public DbSet<Notification> Notifications { get; set; }
+        public DbSet<UserDevice> UserDevices { get; set; }
+        public DbSet<UserSettings> Settings { get; set; }
+        public DbSet<Favorite> FavoriteLists { get; set; }
+        public DbSet<RefreshToken> RefreshTokens { get; set; }
+        public DbSet<Chat> Chats { get; set; }
+        public DbSet<ChatParticipant> ChatParticipants { get; set; }
+        public DbSet<ChatMessage> Messages { get; set; }
+        public DbSet<Order>Orders { get; set; }
+        public DbSet<OrderItem> OrderItems { get; set; }
+        public DbSet<DeliveryMethod> DeliveryMethods { get; set; }
+        public DbSet<Payment>Payments { get; set; }
+
     }
 }

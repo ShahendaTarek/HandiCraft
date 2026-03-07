@@ -18,6 +18,7 @@ namespace HandiCraft.Domain.ProductList
         public string Color { get; set; }
         public int ShippingTimeInDays { get; set; }
         public string ProductImageUrl { get; set; }
+        public decimal Price { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public string UserId { get; set; }
