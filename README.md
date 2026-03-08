@@ -5,9 +5,9 @@ HandiCraft is a platform that helps handmade product creators showcase their wor
 
 ##🚀 Features
 
--User Registration & Login
+- User Registration & Login
 
--JWT Authentication with Refresh Tokens
+- JWT Authentication with Refresh Tokens
 
 -Follow / Unfollow Users
 
