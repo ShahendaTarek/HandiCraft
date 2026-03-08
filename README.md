@@ -9,22 +9,22 @@ HandiCraft is a platform that helps handmade product creators showcase their wor
 
 - JWT Authentication with Refresh Tokens
 
--Follow / Unfollow Users
+- Follow / Unfollow Users
 
--Block Users
+- Block Users
 
--Create and Share Posts (Text, Image, Video)
+- Create and Share Posts (Text, Image, Video)
 
--Comment and React to Posts
+- Comment and React to Posts
 
--Upload and Manage Products
+- Upload and Manage Products
 
--Product Listing with Pagination
+- Product Listing with Pagination
 
--Create and Manage Orders
+- Create and Manage Orders
 
--Secure Payment Processing
+- Secure Payment Processing
 
--Order Tracking and Status Updates
+- Order Tracking and Status Updates
 
--View Order History for Users
+- View Order History for Users
