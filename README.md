@@ -22,9 +22,24 @@ HandiCraft is a platform that helps handmade product creators showcase their wor
 - Product Listing with Pagination
 
 - Create and Manage Orders
-
+  
 - Secure Payment Processing
 
 - Order Tracking and Status Updates
 
 - View Order History for Users
+  ## 🛠 Technologies Used
+
+- .NET 8
+
+- ASP.NET Core Web API
+
+- Entity Framework Core
+
+- SQL Server
+
+- JWT Authentication
+
+- AutoMapper
+
+- Paymob Payment Integration
