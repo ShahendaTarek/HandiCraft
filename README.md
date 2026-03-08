@@ -43,3 +43,14 @@ HandiCraft is a platform that helps handmade product creators showcase their wor
 - AutoMapper
 
 - Paymob Payment Integration
+ ## 📦 API Modules
+
+- Authentication → Register, Login, Token Refresh
+
+- Users → Follow, Unfollow, Block
+
+- Posts → Create posts, comments, reactions
+
+- Products → Add, update, delete, and list products
+
+- Orders → Add to cart, remove from cart, create order, and pay for order
